@@ -1,5 +1,9 @@
-use crate::registers::{Reg16, Reg8};
+use crate::{
+    cpu::Cpu,
+    registers::{Reg16, Reg8},
+};
 
+#[derive(Debug)]
 pub enum OP {
     // 8-bit Arithmetic and Logic Instructions
     Adc(Reg8, Reg8),
@@ -35,7 +39,8 @@ pub enum OP {
     // Load Instructions
     // bool for enable checking if address is btwn FF00 and FFFF
     Ld(Reg8, Reg8, bool),
-    Ld16(Reg16, u16),
+    LdMem(u8, Reg8),
+    Ld16(Reg16, Reg16),
 
     // Jumps and Subroutines
     // bool to check for condition
@@ -60,4 +65,13 @@ pub enum OP {
     Nop,
     Scf,
     Stop,
+}
+
+impl OP {
+    pub fn from_byte(byte: u8) -> Option<OP> {
+        match byte {
+            0x00 => Some(OP::Nop),
+            _ => panic!("Unable to convert byte to opcode: {:X}", byte),
+        }
+    }
 }

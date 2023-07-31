@@ -1,18 +1,28 @@
-pub struct Reg8 {
-    pub a: u8,
-    pub b: u8,
-    pub c: u8,
-    pub d: u8,
-    pub e: u8,
-    pub h: u8,
-    pub l: u8,
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum Reg8 {
+    A,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
 }
 
-pub struct Reg16 {
-    pub af: u16,
-    pub bc: u16,
-    pub de: u16,
-    pub hl: u16,
-    pub sp: u16,
-    pub pc: u16,
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum Reg16 {
+    AF,
+    BC,
+    DE,
+    HL,
+    SP,
+    PC,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum Flag {
+    Z,
+    N,
+    H,
+    C,
 }

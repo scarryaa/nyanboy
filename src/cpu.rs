@@ -40,13 +40,13 @@ impl Cpu {
     }
 
     pub fn execute(&mut self) {
-        let opcode = OP::from_byte(self.memory[self.pc as usize]).expect("Unknown opcode");
+        let (opcode, size, duration) =
+            OP::from_bytes(&self.memory[self.pc as usize..]).expect("Unknown opcode");
 
         match opcode {
             OP::Nop => {}
-            0x01 => {}
             _ => {
-                panic!("Unknown opcode: 0x{:02x}", opcode);
+                panic!("Unknown opcode: 0x")
             }
         }
     }

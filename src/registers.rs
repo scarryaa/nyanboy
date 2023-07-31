@@ -25,4 +25,6 @@ pub enum Flag {
     N,
     H,
     C,
+    NZ,
+    NC,
 }

@@ -25,7 +25,7 @@ pub struct Cpu {
     l: u8,
     sp: u16,
     pc: u16,
-    pub memory: [u8; 65536],
+    memory: [u8; 0x10000],
     stopped: bool,
     halted: bool,
     ime: bool,
@@ -34,22 +34,22 @@ pub struct Cpu {
 impl Cpu {
     pub fn new() -> Cpu {
         Cpu {
-            a: 0,
+            a: 0x01,
             f: Flags {
                 z: false,
                 n: false,
                 h: false,
                 c: false,
             },
-            b: 0,
-            c: 0,
-            d: 0,
-            e: 0,
-            h: 0,
-            l: 0,
-            sp: 0,
-            pc: 0,
-            memory: [0; 65536],
+            b: 0x00,
+            c: 0x13,
+            d: 0x00,
+            e: 0xd8,
+            h: 0x01,
+            l: 0x4d,
+            sp: 0xFFFE,
+            pc: 0x100,
+            memory: [0; 0x10000],
             stopped: false,
             halted: false,
             ime: false,
@@ -57,15 +57,13 @@ impl Cpu {
     }
 
     pub fn execute(&mut self) {
-        let (opcode, size, duration) =
+        let (opcode, mut size, _duration) =
             OP::from_bytes(&self.memory[self.pc as usize..]).expect("Unknown opcode");
 
-        // print!("{:?} ", opcode);
-        // println!("Size: {}", size);
-        // println!("Duration: {}", duration);
-        // println!("PC: {}", self.pc);
-
-        // read from FF01
+        if opcode != OP::Nop {
+            println!("{:?}", opcode);
+            print!("PC: {} \n", self.pc);
+        }
 
         match opcode {
             OP::AddR8(reg) => {
@@ -307,12 +305,12 @@ impl Cpu {
                 let value = self.get_reg8(reg2);
                 self.set_reg8(reg, value);
             }
-            OP::LdMemR8(reg, reg2) => {
+            OP::LdMemR8(_reg, reg2) => {
                 let address = self.get_reg16(registers::Reg16::HL);
                 let value = self.get_reg8(reg2);
                 self.write_byte(address, value);
             }
-            OP::LdR8Mem(reg, reg2) => {
+            OP::LdR8Mem(reg, _reg2) => {
                 let address = self.get_reg16(registers::Reg16::HL);
                 let value = self.read_byte(address);
                 self.set_reg8(reg, value);
@@ -377,6 +375,7 @@ impl Cpu {
             }
             OP::RetCond(flag) => {
                 if self.get_flag(flag) {
+                    size = 20;
                     let address = self.pop_stack();
                     self.pc = address;
                 }
@@ -437,7 +436,7 @@ impl Cpu {
                     value == 0,
                     self.get_flag(registers::Flag::N),
                     false,
-                    value > 0xFF,
+                    value as u16 > 0xFF,
                 );
 
                 self.a = value;
@@ -508,8 +507,8 @@ impl Cpu {
                 }
             }
             OP::CallCondImm16(flag) => {
-                let value = self.read_imm16();
                 if self.get_flag(flag) {
+                    let value = self.read_imm16();
                     self.push_stack(self.pc);
                     self.pc = value;
                 }
@@ -741,45 +740,40 @@ impl Cpu {
     }
 
     fn pop_stack(&mut self) -> u16 {
-        let value = self.read_byte(self.sp);
-        self.set_reg16(registers::Reg16::SP, self.sp + 1);
-        value as u16
+        let low_byte = self.read_byte(self.sp) as u16;
+        let high_byte = self.read_byte(self.sp + 1) as u16;
+        self.sp += 2;
+        (high_byte << 8) | low_byte
     }
 
     fn push_stack(&mut self, value: u16) {
-        self.set_reg16(registers::Reg16::SP, self.sp - 1);
-        self.write_byte(self.sp, (value >> 8) as u8);
-        self.set_reg16(registers::Reg16::SP, self.sp - 1);
+        self.sp -= 2;
         self.write_byte(self.sp, (value & 0x00ff) as u8);
+        self.write_byte(self.sp + 1, ((value & 0xff00) >> 8) as u8);
     }
 
     fn read_imm16(&mut self) -> u16 {
-        // read little endian
-        let value = (self.read_byte(self.pc + 1) as u16) << 8 | self.read_byte(self.pc) as u16;
-        self.set_reg16(registers::Reg16::PC, self.pc + 2);
-        println!("read_imm16: {:x}", value);
+        let value = (self.read_byte(self.pc + 2) as u16) << 8 | self.read_byte(self.pc + 1) as u16;
         value
     }
 
     fn read_imm8(&mut self) -> u8 {
-        let value = self.read_byte(self.pc);
-        self.set_reg16(registers::Reg16::PC, self.pc + 1);
-        value
+        self.read_byte(self.pc + 1)
     }
 
-    fn write_io(&self, value: u16, a: u8) -> i32 {
+    fn write_io(&self, _value: u16, a: u8) -> i32 {
         match a {
             _ => panic!("Unknown IO address: {:x}", a),
         }
     }
 
-    fn read_io(&self, c: u16) -> u8 {
+    fn read_io(&self, _c: u16) -> u8 {
         0
     }
 
-    fn write_mem(&self, value: u16, a: u8) -> () {}
+    fn write_mem(&self, _value: u16, _a: u8) -> () {}
 
-    fn read_mem(&self, value: u16) -> u8 {
+    fn read_mem(&self, _value: u16) -> u8 {
         0
     }
 

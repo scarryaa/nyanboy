@@ -7,7 +7,7 @@ mod registers;
 fn main() {
     let mut cpu = Cpu::new();
 
-    cpu.load_rom("roms/cpu_instrs.gb");
+    cpu.load_rom("roms/04-op r,imm.gb");
     println!("Loaded ROM");
 
     loop {

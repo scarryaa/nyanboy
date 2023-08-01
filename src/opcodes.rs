@@ -1,6 +1,6 @@
 use crate::registers::{Flag, Reg16, Reg8};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum OP {
     // 8-bit Arithmetic and Logic
     AddR8(Reg8),
@@ -340,7 +340,7 @@ impl OP {
             0xC5 => Some((OP::PushR16(Reg16::BC), 1, 16)),
             0xC6 => Some((OP::AddImm8, 2, 8)),
             0xC7 => Some((OP::Rst(0x00), 1, 16)),
-            0xC8 => Some((OP::RetCond(Flag::Z), 1, 20)),
+            0xC8 => Some((OP::RetCond(Flag::Z), 1, 8)),
             0xC9 => Some((OP::Ret, 1, 16)),
             0xCA => Some((OP::JPCondImm16(Flag::Z), 3, 16)),
             0xCB => Some((OP::CBPrefix, 1, 4)),

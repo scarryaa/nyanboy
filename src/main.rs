@@ -6,5 +6,10 @@ mod registers;
 
 fn main() {
     let mut cpu = Cpu::new();
-    cpu.execute();
+
+    cpu.load_rom("roms/cpu_instrs.gb");
+
+    loop {
+        cpu.execute();
+    }
 }
